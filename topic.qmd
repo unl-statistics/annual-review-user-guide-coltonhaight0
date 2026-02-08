@@ -2,12 +2,13 @@
 
 Pick some subset of the information covered in your annual review article that you are interested in exploring in more detail. 
 
-- splines
+- How to use B-splines to fit a smooth curve on messy data.
 
 Identify the scope of your user guide - what will you cover? Specific software packages? When to use or not to use a specific technique?
 
-- how splines are used to smooth data using the splines package
-- how to fix messy data using splines to make the data and graphs easier to interpret
+- How B-splines are used to smooth data using the mgcv and splines package.
+- How to make messy and choppy data have better data curves to help show underlying data trends better.
+- How lowess smoothing functions and spline smoothing looks different.
 
 
 ::: callout-note
