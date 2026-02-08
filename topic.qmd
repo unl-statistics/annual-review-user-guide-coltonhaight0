@@ -8,3 +8,13 @@ Identify the scope of your user guide - what will you cover? Specific software p
 
 - how splines are used to smooth data using the splines package
 - how to fix messy data using splines to make the data and graphs easier to interpret
+
+
+::: callout-note
+# Comments/suggestions
+
+I need quite a bit more detail here to ensure that you're set up for success. Define your scope - what type of splines? Will you compare to LOWESS smooths? Is the focus on penalized spline regression, or just smoothing splines? 
+
+"Fixing" messy data isn't something splines can do, so I'd like you to try to reframe this and resubmit so that I can help steer you on a successful completion path. 
+
+:::
