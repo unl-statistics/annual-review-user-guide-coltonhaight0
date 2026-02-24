@@ -6,9 +6,122 @@ Pick some subset of the information covered in your annual review article that y
 
 Identify the scope of your user guide - what will you cover? Specific software packages? When to use or not to use a specific technique?
 
-- How B-splines are used to smooth data using the mgcv and splines2 package.
+- How B-splines are used to smooth data using the mgcv, splines, and splines2 package.
 - How to make messy and choppy data have better data curves to help show underlying data trends better.
 - How lowess smoothing functions and spline smoothing looks different.
+
+```{r}
+#install.packages("splines2")
+library(splines2)
+knots <- c(0.3, 0.5, 0.6)
+x <- seq(0, 1, 0.01)
+bsMat <- bSpline(x, knots = knots, degree = 1, intercept = TRUE)
+plot(bsMat, mark_knots = "all")
+```
+
+```{r}
+ibsMat <- ibs(x, knots = knots, degree = 1, intercept = TRUE)
+op <- par(mfrow = c(1, 2))
+plot(bsMat, mark_knots = "internal")
+plot(ibsMat, mark_knots = "internal")
+abline(h = c(0.15, 0.2, 0.25), lty = 2, col = "gray")
+
+bsMat <- bSpline(x, knots = knots, intercept = TRUE)
+dbsMat <- dbs(x, knots = knots, intercept = TRUE)
+plot(bsMat, mark_knots = "internal")
+plot(dbsMat, mark_knots = "internal")
+is_equivalent <- function(a, b) {
+    all.equal(a, b, check.attributes = FALSE)
+}
+stopifnot(is_equivalent(dbsMat, deriv(bsMat)))
+```
+
+
+```{r}
+px <- seq(0, 3, 0.01)
+pbsMat <- bSpline(px, knots = knots, Boundary.knots = c(0, 1),
+                  intercept = TRUE, periodic = TRUE)
+ipMat <- ibs(px, knots = knots, Boundary.knots = c(0, 1),
+             intercept = TRUE, periodic = TRUE)
+dp1Mat <- deriv(pbsMat)
+dp2Mat <- deriv(pbsMat, derivs = 2)
+par(mfrow = c(1, 2))
+plot(pbsMat, ylab = "Periodic B-splines", mark_knots = "boundary")
+plot(ipMat, ylab = "The integrals", mark_knots = "boundary")
+
+plot(dp1Mat, ylab = "The 1st derivatives", mark_knots = "boundary")
+plot(dp2Mat, ylab = "The 2nd derivatives", mark_knots = "boundary")
+```
+
+```{r}
+library(splines)
+require(stats); require(graphics)
+bs(women$height, df = 5)
+summary(fm1 <- lm(weight ~ bs(height, df = 5), data = women))
+
+## example of safe prediction
+plot(women, xlab = "Height (in)", ylab = "Weight (lb)")
+ht <- seq(57, 73, length.out = 200)
+lines(ht, predict(fm1, data.frame(height = ht)))
+```
+
+```{r}
+library(tidyverse)
+library(splines)
+finance <- read.csv("04-01-FInancial Sample Data.csv")
+finance <- na.omit(finance)
+ggplot(data = finance, aes(x = Units.Sold, y = Profit)) + geom_point()
+
+bs_model <- lm(Profit ~ bs(Units.Sold, df = 5), data = finance)
+
+knots <- quantile(finance$Units.Sold, probs = c(0.25, 0.5, 0.75))
+
+bs_model <- lm(Profit ~ bs(Units.Sold, knots = knots), data = finance)
+
+finance$predicted <- predict(bs_model)
+
+ggplot(finance, aes(x = Units.Sold, y = Profit)) +
+  geom_point(alpha = 0.5) +
+  geom_line(aes(y = predicted), color = "blue", size = 1.2) +
+  theme_minimal()
+
+```
+
+```{r}
+
+housing <- read.csv("Housing.csv")
+
+ggplot(data = housing, aes(x = area, y = price)) + geom_point()
+
+knots <- quantile(housing$area)
+
+bs_model <- lm(price ~ bs(area, knots = knots), data = housing)
+
+housing$predicted <- predict(bs_model)
+
+ggplot(housing, aes(x = area, y = price)) +
+  geom_point(alpha = 0.5) +
+  geom_line(aes(y = predicted), color = "blue", size = 1.2) +
+  theme_minimal()
+
+ggplot(housing, aes(x = area, y = price)) +
+  geom_line(alpha = 0.5) +
+  geom_line(aes(y = predicted), color = "blue", size = 1.2) +
+  theme_minimal()
+
+library(mgcv)
+set.seed(123)
+
+ggplot(data = housing, aes(x = area, y = price)) + geom_point()
+
+gam_model <- gam(price ~ s(area, bs = "cr"), data = housing)
+
+ggplot(data = housing, aes(x = area, y = price)) + geom_point(alpha = 0.2) + geom_line(aes(y = predict(gam_model)), color = "blue", size = 1) + theme_minimal()
+
+
+
+```
+
 
 
 ::: callout-note
