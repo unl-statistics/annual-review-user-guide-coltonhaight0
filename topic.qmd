@@ -6,7 +6,7 @@ Pick some subset of the information covered in your annual review article that y
 
 Identify the scope of your user guide - what will you cover? Specific software packages? When to use or not to use a specific technique?
 
-- How B-splines are used to smooth data using the mgcv, splines, and splines2 package.
+- How B-splines are used to smooth data using the mgcv, splines package.
 - How to make messy and choppy data have better data curves to help show underlying data trends better.
 - How lowess smoothing functions and spline smoothing looks different.
 
