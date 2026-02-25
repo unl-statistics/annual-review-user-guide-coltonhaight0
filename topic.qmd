@@ -119,8 +119,33 @@ gam_model <- gam(price ~ s(area, bs = "cr"), data = housing)
 ggplot(data = housing, aes(x = area, y = price)) + geom_point(alpha = 0.2) + geom_line(aes(y = predict(gam_model)), color = "blue", size = 1) + theme_minimal()
 
 
+```
+
+
+```{r}
+library(tidyverse)
+library()
+set.seed(123)
+n <- 1000
+
+x <- runif(n,-4,4)
+y <- cos(2*x) + rnorm(n, 0, 0.5)
+df <- data.frame(x,y)
+
+ggplot(data = df, aes(x=x,y=y)) +geom_point(alpha = 0.2) + theme_minimal()
+
+lm_model <- lm(y ~ bs(x, df = 20), data = df) #lower df means smoother line, higher df means more wiggliness
+
+x_pred <- data.frame(x = seq(min(df$x), max(df$x), length.out = 300))
+
+x_pred$y_hat <- predict(lm_model, newdata = x_pred)
+
+ggplot(data = df, aes(x=x,y=y)) + geom_point(alpha = 0.2) + geom_line(data = x_pred, aes(x = x, y = y_hat), color = "blue", size = 1) + theme_minimal()
 
 ```
+
+
+
 
 
 

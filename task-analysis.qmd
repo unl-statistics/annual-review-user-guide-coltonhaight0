@@ -10,11 +10,15 @@ This will be bullet points to expand on further on the user guide.
 
     -   R coding knowledge
 
-    -   Linear Regression Models
+    -   Linear Regression
 
-    -   
+    -   Some Linear Algebra
+
+    -   Some Knowledge of Statistic (Knots, etc)
 
 -   Software Setup:
+
+    -   Need a computer or laptop capable of coding
 
     -   Download R for statistical computing
 
@@ -22,15 +26,57 @@ This will be bullet points to expand on further on the user guide.
 
     -   In R open an R Script
 
-    -   type install.packages("splines") and install.packages("tidyverse")
+    -   Type install.packages("splines") and run
+
+    -   Type install.packages("tidyverse") and run
+
+    -   Type library(splines) and run
+
+    -   Type library(tidyverse) and run
+
+    -   Maybe a data set you want to use splines on
 
 What are the basic requirements for any data that the method is used on? - Are missing values allowed? - Should the data be confined within a certain range? - Does the data have to be approximately normally distributed?
 
+-   Missing or NA values will not work with splines.
+
+-   Data needs to have some sort of variability to it.
+
+-   Any range of values works.
+
+    -   Might be hard to see the splines with very large outliers.
+
+-   Data does not have to be normally distributed.
+
+-   Won't work well with binary data.
+
+-   Works best with scatter plots and line plots.
+
 What are the basic components of the task? - Outline these in a bit more detail
+
+-   Splines are smooth curves that follow trends in data to try to help explain the data points better.
+
+-   A B-spline is a linear combination of basis functions that are explained over a set of knots. Knots are the places where splines join based on the data. The more knots you have for a spline the "wigglier" the splines are. Knots are useful to let the curve follow the data better at its trends. Degrees of freedom for the model also explain "wiggliness".
+
+-   Need a data set or simulated data to use the splines on.
+
+-   Need to get a linear model from the data
+
+-   Make a prediction matrix of the data for the splines
+
+-   plot the spline over the data set before to see the trend of the data.
 
 What decisions does the user need to be prepared to make on the fly?
 
+-   Be prepared to do data cleaning to get rid of NAs.
+
+-   Be prepared to "debug" the code that might not work for them.
+
 What questions should the user ask of the "first draft" of the product? What adjustments may need to be made?
+
+-   The basics of what is needed to find the splines.
+
+-   The knowledge of what is being talked about before.
 
 ## Additional Guidance
 

@@ -1,15 +1,25 @@
 # Needs Assessment {.appendix}
 
-What does someone trying to accomplish your chosen task need help with? 
+What does someone trying to accomplish your chosen task need help with?
 
+-   Need help with coding aspect
 
+-   Need help knowing when to use splines on data.
 
-What parts are likely to be tricky? 
+-   What types of data on the should be used.
 
+What parts are likely to be tricky?
 
+-   Coding
+
+-   Understanding splines
+
+-   Getting the right plots to use splines on.
 
 What resources are already available on this topic that may be helpful? Look for e.g. software vignettes, package documentation, papers about software packages, and so on.
 
+-   "A Very Gentle Introduction to Splines" ([Nugent](https://joshua-nugent.github.io/splines/))
 
+-   @SASHelpCenter
 
-
+-   @UnderstandingBasisSpline
