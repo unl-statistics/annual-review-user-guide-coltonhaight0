@@ -36,6 +36,16 @@ This will be bullet points to expand on further on the user guide.
 
     -   Maybe a data set you want to use splines on
 
+::: callout-note
+
+It's fine to say that your user guide assumes a basic knowledge of R and the tidyverse and how to use an IDE such as RStudio. Then you don't have to describe installing R/Rstudio/tidyverse and can just start at installing splines.
+
+Having a dataset to use splines on is more important -- as is specifying what you need for such a dataset -- a continuous? predictor and response, etc.
+
+Think more carefully about why someone would want to use splines over other, more structured models...
+
+:::
+
 What are the basic requirements for any data that the method is used on? - Are missing values allowed? - Should the data be confined within a certain range? - Does the data have to be approximately normally distributed?
 
 -   Missing or NA values will not work with splines.
