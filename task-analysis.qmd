@@ -62,11 +62,23 @@ What are the basic requirements for any data that the method is used on? - Are m
 
 -   Works best with scatter plots and line plots.
 
+::: callout-note
+
+I'm not sure what type of data a scatter plot or line plot is... yes, there are some types of data that are more conducive to that type of plots, and those are also better for splines, but you need to articulate what those are, specifically, in terms of the data and not how it is visualized.
+
+:::
+
 What are the basic components of the task? - Outline these in a bit more detail
 
 -   Splines are smooth curves that follow trends in data to try to help explain the data points better.
 
 -   A B-spline is a linear combination of basis functions that are explained over a set of knots. Knots are the places where splines join based on the data. The more knots you have for a spline the "wigglier" the splines are. Knots are useful to let the curve follow the data better at its trends. Degrees of freedom for the model also explain "wiggliness".
+
+::: callout-note
+
+Feel free to illustrate the effect of these knots with sketches/cartoons.
+
+:::
 
 -   Need a data set or simulated data to use the splines on.
 
