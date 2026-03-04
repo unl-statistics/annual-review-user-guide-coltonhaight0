@@ -36,6 +36,16 @@ This will be bullet points to expand on further on the user guide.
 
     -   Maybe a data set you want to use splines on
 
+::: callout-note
+
+It's fine to say that your user guide assumes a basic knowledge of R and the tidyverse and how to use an IDE such as RStudio. Then you don't have to describe installing R/Rstudio/tidyverse and can just start at installing splines.
+
+Having a dataset to use splines on is more important -- as is specifying what you need for such a dataset -- a continuous? predictor and response, etc.
+
+Think more carefully about why someone would want to use splines over other, more structured models...
+
+:::
+
 What are the basic requirements for any data that the method is used on? - Are missing values allowed? - Should the data be confined within a certain range? - Does the data have to be approximately normally distributed?
 
 -   Missing or NA values will not work with splines.
@@ -52,11 +62,23 @@ What are the basic requirements for any data that the method is used on? - Are m
 
 -   Works best with scatter plots and line plots.
 
+::: callout-note
+
+I'm not sure what type of data a scatter plot or line plot is... yes, there are some types of data that are more conducive to that type of plots, and those are also better for splines, but you need to articulate what those are, specifically, in terms of the data and not how it is visualized.
+
+:::
+
 What are the basic components of the task? - Outline these in a bit more detail
 
 -   Splines are smooth curves that follow trends in data to try to help explain the data points better.
 
 -   A B-spline is a linear combination of basis functions that are explained over a set of knots. Knots are the places where splines join based on the data. The more knots you have for a spline the "wigglier" the splines are. Knots are useful to let the curve follow the data better at its trends. Degrees of freedom for the model also explain "wiggliness".
+
+::: callout-note
+
+Feel free to illustrate the effect of these knots with sketches/cartoons.
+
+:::
 
 -   Need a data set or simulated data to use the splines on.
 
