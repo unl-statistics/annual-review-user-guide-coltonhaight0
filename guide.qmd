@@ -62,7 +62,7 @@ housing <- read.csv("Housing.csv")
 ggplot(data = housing, aes(x = area, y = price)) + geom_point(alpha = 0.5) +theme_minimal()
 ```
 
-This code above reads in our tidyverse package from earlier and the housing data that we downloaded earlier. After loading in tidyverse and our housing data we need to make a plot using ggplot. In the ggplot sunction we specify that we are using the housing data. Next, we specify that we are going to be plotting the Area of a House on the x-axis and Price of the Houses on the y-axis. Then add a + goem_point(alpha = 0.5) to sepecify that we want to plot a scatter plot where the opacity of the points are at 0.5. An the + theme_minimal makes the plot easier to see. Now we are going to add a B-spline curve to this plot to identify the trends of the data.
+This code above reads in our tidyverse package from earlier and the housing data that we downloaded earlier. After loading in tidyverse and our housing data we need to make a plot using ggplot. In the ggplot function we specify that we are using the housing data. Next, we specify that we are going to be plotting the Area of a House on the x-axis and Price of the Houses on the y-axis. Then add a + goem_point(alpha = 0.5) to specify that we want to plot a scatter plot where the opacity of the points are at 0.5. And the + theme_minimal makes the plot easier to see. Now we are going to add a B-spline curve to this plot to identify the trends of the data.
 
 ```{r}
 #install.packages("splines")
@@ -80,9 +80,9 @@ ggplot(data = housing, aes(x = area, y = price)) +
   theme_minimal()
 ```
 
-The code above starts by installing a new package call splines and reading in that splines package. Next we find the knots for our data using the area variable. The quantile(housing\$area) function chooses knot locations based on the distribution of the area data from the housing data set. Next, we are finding a linear regression model for the B-spline. The lm(price \~ bs(area, knots = knots), data = housing) fits the linear regression model where we are predicting the price of the houses. The bs(area, knots = knots) function generates B-spline basis matrix with the knots that we found earlier using quantile(). And data = housing specifies that we are using the housing data set to fit our linear regression model. The line of code predicts the price of house from our b-spline model and puts it into a new column called predicted in our original housing data set. Finally we are plotting the housing data again with a new part added on. The + geom_line(aes(y = predicted), color "blue", size = 1) plots a line on the housing data plot from earlier were the line is the predicted price of the house in the color blue.
+The code above starts by installing a new package call splines and reading in that splines package. Next we find the knots for our data using the area variable. The quantile(housing\$area) function chooses knot locations based on the distribution of the area data from the housing data set. Next, we are finding a linear regression model for the B-spline. The lm(price \~ bs(area, knots = knots), data = housing) fits the linear regression model where we are predicting the price of the houses. The bs(area, knots = knots) function generates B-spline basis matrix with the knots that we found earlier using quantile(). And data = housing specifies that we are using the housing data set to fit our linear regression model. The line of code predicts the price of house from our b-spline model and puts it into a new column called predicted in our original housing data set. Finally we are plotting the housing data again with a new part added on. The + geom_line(aes(y = predicted), color "blue", size = 1) plots a line on the housing data plot from earlier where the line is the predicted price of the house in the color blue.
 
-From this plot we can see some trends. Near the lower area values there is a bunch of data points bunched up with a lower price point. The B-spline goes through the middle of the points as expected. As the area increases so does the price but there are still some points that shifts the B-spline curve towards the higher values. Even so the B-spline curves looks to be predicting the model well.
+From this plot we can see some trends. Near the lower area values there are a bunch of data points bunched up with a lower price point. The B-spline goes through the middle of the points as expected. As the area increases so does the price but there are still some points that shifts the B-spline curve towards the higher values. Even so the B-spline curves seems to be predicting the model well.
 
 Now we will be looking at some generated data.
 
@@ -97,7 +97,7 @@ df <- data.frame(x,y)
 ggplot(data = df, aes(x=x,y=y)) +geom_point(alpha = 0.2) + theme_minimal()
 ```
 
-The set.seed(123) gives us a way to reproduce our generated data. In the next little bit of code runif(n,-4,4) is generating 1000 random samples (n) of a Uniform(-4, 4) distribution spread evenly between -4 and 4. The next line simulates data from a cos() functions of the data from x multiplied by 2 to make the cosine function wave oscillate 2 times as fast. Then it adds random noise to the cosine wave from 1000 samples form a normal distribution with a mean of 0 and a standard deviation of 0.5. Putting the two pieces of code together it gives some pretty messy data. We are then going to put our samples from the Uniform distribution and the cosine wave data into a data frame called df. Then we plot our data and see the cosine wave.
+The set.seed(123) gives us a way to reproduce our generated data. In the next little bit of code runif(n,-4,4) is generating 1000 random samples (n) of a Uniform(-4, 4) distribution spread evenly between -4 and 4. The next line simulates data from a cos() function of the data from x multiplied by 2 to make the cosine function wave oscillate 2 times as fast. Then it adds random noise to the cosine wave from 1000 samples from a normal distribution with a mean of 0 and a standard deviation of 0.5. Putting the two pieces of code together,it gives some pretty messy data. Then we are going to put our samples from the Uniform distribution and the cosine wave data into a data frame called df. Then we plot our data and see the cosine wave.
 
 ```{r}
 lm_model <- lm(y ~ bs(x, df = 25), data = df) #lower df means smoother line, higher df means more wiggliness
@@ -111,9 +111,9 @@ ggplot(data = df, aes(x=x,y=y)) + geom_point(alpha = 0.2) + geom_line(data = x_p
 
 In the next line of code we fit our linear regression model using lm() to this data modeling y (our cosine wave) as a function of the B-spline function bs() for x (our uniform distribution data) with degrees of freedom, df = 25. Degrees of freedom acts like knots in this code. The lower df means a smoother spline curve and the higher df means a more wiggly spline curve. Next we create a data frame with 300 rows from the lowest value to the highest value of our uniform distribution from -4 to 4. We then we add a column to our new data frame where we predict our linear regression model. Then we plot the cosine wave from earlier with our B-spline added onto it with our predicted values for our B-spline curve. The B-spline curve shows that our linear regression model fits our data very well.
 
-## 4. Spline Smoothing or Loess Smoothing
+## 4. Spline Smoothing or LOESS Smoothing
 
-LOESS Smoothing is another way to fit a smooth curve on a messy scatter plot. Because of we can compare the two types of smoothing methods to see the differences between the two and to see which way is easier to use and better fit our data. Before we start that we need to get a quick overview of what LOESS is.
+LOESS Smoothing is another way to fit a smooth curve on a messy scatter plot. We can compare the two types of smoothing methods to see the differences between the two and to see which way is easier to use and better fit our data. Before we start that, we need to get a quick overview of what LOESS is.
 
 ### 4.1 LOESS Smoothing
 
@@ -121,7 +121,7 @@ LOESS stands for Locally Estimated Scatterplot Smoothing is a nonparametric smoo
 
 ### 4.2 Splines vs. LOESS
 
-Both LOESS and Spline smoothing is very useful for fitting curves to data. Comparing LOESS and Splines there are some differences we can see. Spline smoothing has the data split into different sections fit polynomials to that data in the specific section while LOESS smoothing uses polynomials for near or local data points and forms a curve off of that for many data points. Splines use knots to determine how flexible the curve is going to be while LOESS smoothing uses a thing called span. Another big difference is how LOESS smoothing is very time extensive and take a lot of computer power for large data sets while splines are quick and need less computing power.
+Both LOESS and Spline smoothing is very useful for fitting curves to data. Comparing LOESS and Splines there are some differences we can see. Spline smoothing has the data split into different sections and fit polynomials to that data in the specific section while LOESS smoothing uses polynomials for near or local data points and forms a curve off of that for many data points. Splines use knots to determine how flexible the curve is going to be while LOESS smoothing uses a thing called span. Another big difference is how LOESS smoothing is very time extensive and take a lot of computer power for large data sets while splines are quick and need less computing power.
 
 Below is some code for LOESS smoothing to see how it looks compared to using B-splines for the same simulated data above.
 
@@ -143,10 +143,13 @@ ggplot(df, aes(x = x, y = y)) +
   theme_minimal()
 ```
 
-The first bit of code is just to replicate the same sample data of a cosine wave. Next, we go straight into plotting with ggplot. The ggplot package we have been using above has a way to create a LOESS curve while plotting the data which is very helpful. To do this we just need to add more lines of code onto the scatter plot code called goem_smooth (smooth for line). In geom_smooth we use method = "loess" to use loess smoothing to make a curve that follows our data. Next there is a span = 1 (or 0.1 or 0.01). This tells geom_smooth to fit a certain amount of data based on th local regression. A lower span means the curve is more wiggly while higher span means less wiggly. Then we put a color to each loess curve to the plot to show the differences between the different span values. The rest is setting the specific color to the curve and adding a legend. We can see the differences in the levels of span right away which is consistent with before. It does look similar to spline smoothing curve above for the smoother = 0.1. When running the code it took longer to run which is what the main downside to LOESS smoothing is. 
+The first bit of code is just to replicate the same sample data of a cosine wave. Next, we go straight into plotting with ggplot. The ggplot package we have been using above has a way to create a LOESS curve while plotting the data which is very helpful. To do this we just need to add more lines of code onto the scatter plot code called goem_smooth (smooth for line). In geom_smooth we use method = "loess" to use loess smoothing to make a curve that follows our data. Next there is a span = 1 (or 0.1 or 0.01). This tells geom_smooth to fit a certain amount of data based on the local regression. A lower span means the curve is more wiggly while higher span means less wiggly. Then we put a color to each LOESS curve to the plot to show the differences between the different span values. The rest is setting the specific color to the curve and adding a legend. We can see the differences in the levels of span right away which is consistent with before. It does look similar to spline smoothing curve above for the smoother = 0.1. When running the code it took longer to run which is what the main downside to LOESS smoothing is.
 
+## 5. Lessons Learned
 
-
-
-
-
+1.  What B-splines and knots are and how they split up data to fit a smooth curve to a scatter plot.
+2.  An introduction into R with some code examples and installing packages and reading in data and how to plot that data.
+3.  Using B-spline functions to add a curve to a data set using the splines package and bs() function.
+4.  Generate messy data in the form of a cosine wave and fit a B-spline curve to that messy data.
+5.  Compare LOESS and B-splines and see where they are the same or different.
+6.  Plot a LOESS smoothing curve on a cosine wave of messy data using ggplot method = "loess" in geom_smooth.
