@@ -23,7 +23,7 @@ In the first line of code "x" is called a variable where it gets assigned a valu
 
 R is full of very useful packages that can be used to do so many different things. Below is some code on how to install and load packages that we will be using in R.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 #install.packages("tidyverse")
 library(tidyverse)
 ```
@@ -34,15 +34,15 @@ The package we just loaded into R is one that we will be using when we are worki
 
 The last little bit of beginning code needed to go over is to read in a csv file. Using csv files are the main file type used to read data into R. When you find a csv data set that you want to use to work with splines create a folder to keep that data set. In the menu bar on the top of your device click on the **Session** tab and in that tab click on the Set Working Directory tab and then click Choose Directory... It should look like this.
 
-![](SetWD.png)
+![](SetWD.png){width="50%"}
 
 Setting a working directory is the way you are able to access certain files in your computer to use for the code you are working on. Next, choose the place you saved your data set in to use that as your working directory.
 
 Next, we can run this code below to read in the csv file that we want to use for our data. We will be using housing market data later in this guide for an example to use with splines. Here is a [link](https://www.kaggle.com/datasets/yasserh/housing-prices-dataset) to the data set.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 housing <- read.csv("Housing.csv")
-head(housing)
+#head(housing)
 ```
 
 The function we are using is read.csv. It does exactly what the function name is called, it reads in the csv data set into R. You should always assign your read.csv() to a variable. That is the easiest way to be able to use the data set in R in different functions. By typing the name of the variable in a line of code by itself it will print the value of the variable. In this example it will print the data set into the console below. The head() function with your data set variable inside will display only the first 6 row of the data set into the console.
@@ -64,7 +64,7 @@ ggplot(data = housing, aes(x = area, y = price)) + geom_point(alpha = 0.5) +them
 
 This code above reads in our tidyverse package from earlier and the housing data that we downloaded earlier. After loading in tidyverse and our housing data we need to make a plot using ggplot. In the ggplot function we specify that we are using the housing data. Next, we specify that we are going to be plotting the Area of a House on the x-axis and Price of the Houses on the y-axis. Then add a + goem_point(alpha = 0.5) to specify that we want to plot a scatter plot where the opacity of the points are at 0.5. And the + theme_minimal makes the plot easier to see. Now we are going to add a B-spline curve to this plot to identify the trends of the data.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 #install.packages("splines")
 library(splines)
 
@@ -125,7 +125,7 @@ Both LOESS and Spline smoothing is very useful for fitting curves to data. Compa
 
 Below is some code for LOESS smoothing to see how it looks compared to using B-splines for the same simulated data above.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 x <- runif(n,-4,4)
 y <- cos(2*x) + rnorm(n, 0, 0.5)
 df <- data.frame(x,y)
