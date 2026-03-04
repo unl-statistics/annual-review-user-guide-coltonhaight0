@@ -88,7 +88,8 @@ ggplot(finance, aes(x = Units.Sold, y = Profit)) +
 ```
 
 ```{r}
-
+library(tidyverse)
+library(splines)
 housing <- read.csv("Housing.csv")
 
 ggplot(data = housing, aes(x = area, y = price)) + geom_point()
@@ -109,22 +110,13 @@ ggplot(housing, aes(x = area, y = price)) +
   geom_line(aes(y = predicted), color = "blue", size = 1.2) +
   theme_minimal()
 
-library(mgcv)
-set.seed(123)
-
-ggplot(data = housing, aes(x = area, y = price)) + geom_point()
-
-gam_model <- gam(price ~ s(area, bs = "cr"), data = housing)
-
-ggplot(data = housing, aes(x = area, y = price)) + geom_point(alpha = 0.2) + geom_line(aes(y = predict(gam_model)), color = "blue", size = 1) + theme_minimal()
-
 
 ```
 
 
 ```{r}
 library(tidyverse)
-library()
+library(mgcv)
 set.seed(123)
 n <- 1000
 
@@ -144,6 +136,29 @@ ggplot(data = df, aes(x=x,y=y)) + geom_point(alpha = 0.2) + geom_line(data = x_p
 
 ```
 
+Lowess smoothing
+```{r}
+set.seed(123)
+n <- 1000
+
+x <- runif(n,-4,4)
+y <- cos(2*x) + rnorm(n, 0, 0.5)
+df <- data.frame(x,y)
+
+ggplot(df, aes(x = x, y = y)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "loess", span = 1, se = FALSE, 
+              aes(color = "Smoother = 1")) +
+  geom_smooth(method = "loess", span = 0.1, se = FALSE, 
+              aes(color = "Smoother = 0.1")) + 
+  geom_smooth(method = "loess", span = 0.01, se = FALSE, 
+              aes(color = "Smoother = 0.01")) +
+  scale_color_manual(values = c("Smoother = 1" = "#000000", "Smoother = 0.1" = "blue", "Smoother = 0.01" = "red")) +
+  labs(color = "LOESS Span") +
+  theme_minimal()
+
+
+```
 
 
 
