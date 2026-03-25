@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-03-24">
+
+<title>A Guide to Working With B-splines in R – User Guide: A Guide to Working With B-splines in R</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./references.html" rel="next">
+<link href="./index.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-2a04f3694134fdc0690229208924d33b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-1c44d428f97ff80731836fc539de4bed.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./guide.html">A Guide to Working With B-splines in R</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">User Guide: A Guide to Working With B-splines in R</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignment Flow</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./guide.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">A Guide to Working With B-splines in R</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./topic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Topic</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./needs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Needs Assessment</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./task-analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Task Analysis</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./R_Introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Introduction to R</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#an-introduction-to-splines" id="toc-an-introduction-to-splines" class="nav-link active" data-scroll-target="#an-introduction-to-splines">1. An Introduction to Splines</a></li>
+  <li><a href="#b-splines-and-the-math" id="toc-b-splines-and-the-math" class="nav-link" data-scroll-target="#b-splines-and-the-math">2. B-splines and The Math</a></li>
+  <li><a href="#working-with-splines" id="toc-working-with-splines" class="nav-link" data-scroll-target="#working-with-splines">3. Working With Splines</a></li>
+  <li><a href="#spline-smoothing-or-loess-smoothing" id="toc-spline-smoothing-or-loess-smoothing" class="nav-link" data-scroll-target="#spline-smoothing-or-loess-smoothing">4. Spline Smoothing or LOESS Smoothing</a>
+  <ul class="collapse">
+  <li><a href="#loess-smoothing" id="toc-loess-smoothing" class="nav-link" data-scroll-target="#loess-smoothing">4.1 LOESS Smoothing</a></li>
+  <li><a href="#splines-vs.-loess" id="toc-splines-vs.-loess" class="nav-link" data-scroll-target="#splines-vs.-loess">4.2 Splines vs.&nbsp;LOESS</a></li>
+  </ul></li>
+  <li><a href="#lessons-learned" id="toc-lessons-learned" class="nav-link" data-scroll-target="#lessons-learned">5. Lessons Learned</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">6. References</a>
+  <ul class="collapse">
+  <li><a href="#if-you-want-to-know-more-check-out-these-additional-resources." id="toc-if-you-want-to-know-more-check-out-these-additional-resources." class="nav-link" data-scroll-target="#if-you-want-to-know-more-check-out-these-additional-resources.">If you want to know more check out these additional resources.</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">A Guide to Working With B-splines in R</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 24, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This user guide is going to go over how to use B-splines to smooth data working in the coding language R. Before we get started on that, lets talk about what splines are.</p>
+<section id="an-introduction-to-splines" class="level2">
+<h2 class="anchored" data-anchor-id="an-introduction-to-splines">1. An Introduction to Splines</h2>
+<p>Splines are piecewise polynomials that are used to fit multiple small curves to follow the trend in data better than just one big curve can <span class="citation" data-cites="UnderstandingBasisSpline">(Ken Koon Wong, 2025 <a href="references.html#ref-UnderstandingBasisSpline" role="doc-biblioref">n.d.</a>)</span>. Data is split into different sections and given polynomials that fit the data for each section. The points that split the data up and where the small curves connect are called knots. Knots allow for a smooth transition from one polynomial curve to next. The more knots used when fitting a spline to a data set plot results in a more flexible curve that can conform to the data better <span class="citation" data-cites="SASHelpCenter">(SAS Help Center, <a href="references.html#ref-SASHelpCenter" role="doc-biblioref">n.d.</a>)</span>. So more knots = wigglier curve, less knots = smoother curve. If there is too many knots being used then the curve could be overfitting the model. Overfitting is bad because it makes the model curve look too wiggly and hard to read. Overfitting means your model is too complex for your data. Underfitting is another issue. Underfitting means your model is too simple for your data set <span class="citation" data-cites="nikolaiev_dimid_overfitting_2021">(Dmytro Nikolaiev, <a href="references.html#ref-nikolaiev_dimid_overfitting_2021" role="doc-biblioref">2021</a>)</span>.</p>
+<p>To look at how spline can be used on data we need to plot it in the coding language R. If you are unfamiliar with R we will start with a quick overview of R <span class="citation" data-cites="bates_tutorial_2020">(Bates, <a href="references.html#ref-bates_tutorial_2020" role="doc-biblioref">2020</a>)</span>, where to download it, and how to get started. This will be an appendix for this guide.</p>
+</section>
+<section id="b-splines-and-the-math" class="level2">
+<h2 class="anchored" data-anchor-id="b-splines-and-the-math">2. B-splines and The Math</h2>
+<p>B-splines (also called cubic basis spline) is a continuous piecewise cubic function with first and second derivatives that are continuous. To construct a B-spline is called the Cox deBoor Recursion Formula. This formula is given by <span class="math display">\[
+B_{j,0}(x) =
+\begin{cases}
+1 &amp; x_j \le x &lt; x_{i+1} \\
+0 &amp; \text{otherwise}
+\end{cases}
+\]</span> <span class="math display">\[
+B_{j,k}(x) =\frac{x - x_j}{x_{j+k} - x_j} B_{j,k-1}(x)+\frac{x_{j+k+1} - x}{x_{j+k+1} - x_{j+1}} B_{j+1,k-1}(x)
+\]</span></p>
+<ul>
+<li>The B-splines are degree <span class="math inline">\(k\)</span>-1</li>
+<li>Where the weights are determined by a knot sequence <span class="math inline">\(\cdots &lt; x_{-2} &lt; x_{-1} &lt; x_0 &lt; x_1 &lt; \cdots &lt; x_n &lt; x_{n+1} &lt; \cdots\)</span></li>
+<li>The knots are <span class="math inline">\(x_j\)</span> = <span class="math inline">\(j\)</span> - <span class="math inline">\(j\)</span> is the B-spline position (where the B-spline is located at in the knot sequence above)</li>
+<li><span class="math inline">\(k\)</span> is the piecewise polynomials degree which controls the smoothness or wigglyness of the curve.
+<ul>
+<li><span class="math inline">\(k\)</span> = 0 is noncontinuous smoothness</li>
+<li><span class="math inline">\(k\)</span> = 1 is continuous smoothness, linear meaning the B-spline curve is a straight line</li>
+<li><span class="math inline">\(k\)</span> = 2 is 1st derivative continuous</li>
+<li><span class="math inline">\(k\)</span> = 3 is 2nd derivative continuous</li>
+</ul></li>
+<li><span class="math inline">\(k\)</span> - 1 also represents the number of knots fit on the data</li>
+<li><span class="math inline">\(k\)</span> = 1 means no knots so its a straight line, <span class="math inline">\(k\)</span> = 2 means one knot so there is one kink, …</li>
+</ul>
+<p>Knots serve as a connector to give the B-spline curve its structure. Here is a good example of knots and how they can effect the B-spline curve. <img src="knot_example.png" class="img-fluid" style="width:70.0%" alt="Credit: Bradley Boehmke"></p>
+<p>From these graphs we can see a clear description of how knots work in accordance to B-spline curves. The more knots a B-spline uses means the better the fit to the data is.</p>
+<p>If the number of knots is too big then that can lead to overfitting the model. Here is an example of overfitting to where the curve shows more than just the underlying trend and makes the data harder to interpret.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="overfitting_example.png" class="img-fluid figure-img" style="width:70.0%"></p>
+<figcaption>Credit: Bayesian Computation Book</figcaption>
+</figure>
+</div>
+<p>This shows how as the number of knots, or degrees in this case, get higher the curve gets very wiggly and unstructured. This can lead to difficulty seeing trends of the data as the curves can get distracting and can be misleading. The more knots used for the data the more the curve actually follows the data points. You could have as many knots as data points and it would look like a super wiggly and hard to interpret line connecting every data point together. Choosing the right number of knots is important to see how well the B-spline fits the model used to generate the data.</p>
+<p>Next, lets work with some sample housing data and fit a B-spline curve to that data.</p>
+</section>
+<section id="working-with-splines" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-splines">3. Working With Splines</h2>
+<p>To start we will need to run some code to give us some a housing data set that we will be using for this first example. Here is a <a href="https://www.kaggle.com/datasets/yasserh/housing-prices-dataset">link</a> to the data set.</p>
+<p>In this guide we are going to be working with Basis splines or B-splines for data smoothing. Knots and degrees of freedom are the best ways to define B-splines for data. Degree of freedom works similar to knots for coding purposes for some examples later on. B-splines are a linear combination of a set of basis functions that use knots to control the shape of the spline.</p>
+<p>Now that we have a short background starts with R and on B-splines we can start to fit them to a data set. In this case lets use it on the housing market data we loaded into our R script above. We will also be using a new package called splines to work with this data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>housing <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"Housing.csv"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> housing, <span class="fu">aes</span>(<span class="at">x =</span> area, <span class="at">y =</span> price)) <span class="sc">+</span> </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Housing Data Scatter Plot"</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  )<span class="sc">+</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-plot1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-plot1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="guide_files/figure-html/fig-plot1-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-plot1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Housing Data Scatter Plot
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>This code above reads in our tidyverse package from earlier and the housing data that we downloaded earlier. After loading in tidyverse and our housing data we need to make a plot using <code>ggplot</code>. In the <code>ggplot</code> function we specify that we are using the housing data. Next, we specify that we are going to be plotting the Area of a House on the x-axis and Price of the Houses on the y-axis. Then add a <code>+ geom_point(alpha = 0.5)</code> to specify that we want to plot a scatter plot where the opacity of the points are at 0.5. And the + theme_minimal makes the plot easier to see. Now we are going to add a B-spline curve to this plot to identify the trends of the data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages("splines")</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(splines)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>knots <span class="ot">&lt;-</span> <span class="fu">quantile</span>(housing<span class="sc">$</span>area)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>bs_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(price <span class="sc">~</span> <span class="fu">bs</span>(area, <span class="at">knots =</span> knots), <span class="at">data =</span> housing)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>housing<span class="sc">$</span>predicted <span class="ot">&lt;-</span> <span class="fu">predict</span>(bs_model)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> housing, <span class="fu">aes</span>(<span class="at">x =</span> area, <span class="at">y =</span> price)) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> predicted), <span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Housing Data Scatter Plot With B-spline Curve Fit"</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  )<span class="sc">+</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-plot2" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-plot2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="guide_files/figure-html/fig-plot2-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-plot2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Housing Data Scatter Plot With B-spline Fit
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The code above starts by installing a new package call splines and reading in that splines package. Next we find the knots for our data using the area variable. The <code>quantile(housing\$area)</code> function chooses knot locations based on the distribution of the area data from the housing data set. Next, we are finding a linear regression model for the B-spline. The <code>lm(price \~ bs(area, knots = knots), data = housing)</code> fits the linear regression model where we are predicting the price of the houses. The bs(area, knots = knots) function generates B-spline basis matrix with the knots that we found earlier using <code>quantile()</code>. And <code>data = housing</code> specifies that we are using the housing data set to fit our linear regression model. The line of code with <code>pridict()</code> predicts the price of house from our b-spline model and puts it into a new column called predicted in our original housing data set. Finally we are plotting the housing data again with a new part added on. The <code>+ geom_line(aes(y = predicted), color "blue", size = 1)</code> plots a line on the housing data plot from earlier where the line is the predicted price of the house in the color blue.</p>
+<p>From <a href="#fig-plot2" class="quarto-xref">Figure&nbsp;<span>2</span></a> we can see some trends. Near the lower area values there are a bunch of data points bunched up with a lower price point. The B-spline goes through the middle of the points as expected. As the area increases so does the price but there are still some points that shifts the B-spline curve towards the higher values. Even so the B-spline curves seems to be predicting the model well.</p>
+<p>Now we will be looking at some generated data <span class="citation" data-cites="UnderstandingBasisSpline">(Ken Koon Wong, 2025 <a href="references.html#ref-UnderstandingBasisSpline" role="doc-biblioref">n.d.</a>)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">runif</span>(n,<span class="sc">-</span><span class="dv">4</span>,<span class="dv">4</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>x) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(x,y)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df, <span class="fu">aes</span>(<span class="at">x=</span>x,<span class="at">y=</span>y)) <span class="sc">+</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span> </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Cosine Wave"</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  )<span class="sc">+</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-plot3" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-plot3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="guide_files/figure-html/fig-plot3-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-plot3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Cosine Wave
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The <code>set.seed(123)</code> gives us a way to reproduce our generated data. In the next little bit of code <code>runif(n,-4,4)</code> is generating 1000 random samples (n) of a Uniform(-4, 4) distribution spread evenly between -4 and 4. The next line simulates data from a <code>cos()</code> function of the data from x multiplied by 2 to make the cosine function wave oscillate 2 times as fast. Then it adds random noise to the cosine wave from 1000 samples from a normal distribution with a mean of 0 and a standard deviation of 0.5. Putting the two pieces of code together, it gives some pretty messy data. Then we are going to put our samples from the Uniform distribution and the cosine wave data into a data frame called df. Next, we plot our data and see the cosine wave.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>lm_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> <span class="fu">bs</span>(x, <span class="at">df =</span> <span class="dv">25</span>), <span class="at">data =</span> df) <span class="co">#lower df means smoother line, higher df means more wiggliness</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>x_pred <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="fu">min</span>(df<span class="sc">$</span>x), <span class="fu">max</span>(df<span class="sc">$</span>x), <span class="at">length.out =</span> <span class="dv">300</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>x_pred<span class="sc">$</span>predicted <span class="ot">&lt;-</span> <span class="fu">predict</span>(lm_model, <span class="at">newdata =</span> x_pred)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df, <span class="fu">aes</span>(<span class="at">x=</span>x,<span class="at">y=</span>y)) <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span> </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> x_pred, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> predicted), <span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Cosine Wave With B-spline Curve Fit"</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-plot4" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-plot4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="guide_files/figure-html/fig-plot4-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-plot4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Cosine Wave With B-spline Curve Fit
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>In the next line of code we fit our linear regression model using <code>lm()</code> to this data modeling y (our cosine wave) as a function of the B-spline function <code>bs()</code> for x (our uniform distribution data) with degrees of freedom, df = 25. Degrees of freedom acts like knots in this code. The lower df means a smoother spline curve and the higher df means a more wiggly spline curve. Next we create a data frame with 300 rows from the lowest value to the highest value of our uniform distribution from -4 to 4. We then we add a column to our new data frame where we predict our linear regression model. Then we plot the cosine wave from earlier with our B-spline added onto it with our predicted values for our B-spline curve. The B-spline curve shows that our linear regression model fits our data very well.</p>
+</section>
+<section id="spline-smoothing-or-loess-smoothing" class="level2">
+<h2 class="anchored" data-anchor-id="spline-smoothing-or-loess-smoothing">4. Spline Smoothing or LOESS Smoothing</h2>
+<p>LOESS Smoothing is another way to fit a smooth curve on a messy, or noisy, scatter plot. We can compare the two types of smoothing methods to see the differences between the two and to see which way is easier to use and better fit our data. Before we start that, we need to get a quick overview of what LOESS is.</p>
+<section id="loess-smoothing" class="level3">
+<h3 class="anchored" data-anchor-id="loess-smoothing">4.1 LOESS Smoothing</h3>
+<p>LOESS stands for Locally Estimated Scatterplot Smoothing is a nonparametric smoothing method that uses regression in a local area (where the L comes from). This method takes a smoothing parameter and fits values into a local polynomial using a nearest neighbor algorithm <span class="citation" data-cites="noauthor_4144_nodate">(<a href="references.html#ref-noauthor_4144_nodate" role="doc-biblioref"><span>“4.1.4.4. <span>LOESS</span> (Aka <span>LOWESS</span>)”</span> n.d.</a>)</span>. The smoothing parameter controls the wiggliness of the curve formed by the LOESS regression function. In code later in this guide LOESS uses a thing called call span instead of knots. Because of these things LOESS smoothing can be very time extensive for larger data sets and take a lot of computing power.</p>
+</section>
+<section id="splines-vs.-loess" class="level3">
+<h3 class="anchored" data-anchor-id="splines-vs.-loess">4.2 Splines vs.&nbsp;LOESS</h3>
+<p>Both LOESS and Spline smoothing is very useful for fitting curves to data. Comparing LOESS and Splines there are some differences we can see. Spline smoothing has the data split into different sections and fit polynomials to that data in the specific section while LOESS smoothing uses polynomials for near or local data points and forms a curve off of that for many data points. Splines use knots to determine how flexible the curve is going to be while LOESS smoothing uses a thing called span. Another big difference is how LOESS smoothing is very time extensive and take a lot of computer power for large data sets while splines are quick and need less computing power.</p>
+<p>Below is some code for LOESS smoothing to see how it looks compared to using B-splines for the same simulated data above.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">runif</span>(n,<span class="sc">-</span><span class="dv">4</span>,<span class="dv">4</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>x) <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(x,y)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y)) <span class="sc">+</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">span =</span> <span class="dv">1</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">color =</span> <span class="st">"Smoother = 1"</span>)) <span class="sc">+</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">span =</span> <span class="fl">0.1</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">color =</span> <span class="st">"Smoother = 0.1"</span>)) <span class="sc">+</span> </span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">span =</span> <span class="fl">0.01</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">color =</span> <span class="st">"Smoother = 0.01"</span>)) <span class="sc">+</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Smoother = 1"</span> <span class="ot">=</span> <span class="st">"#000000"</span>, </span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>                                <span class="st">"Smoother = 0.1"</span> <span class="ot">=</span> <span class="st">"blue"</span>, </span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>                                <span class="st">"Smoother = 0.01"</span> <span class="ot">=</span> <span class="st">"red"</span>)) <span class="sc">+</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">color =</span> <span class="st">"LOESS Span"</span>, <span class="at">title =</span> <span class="st">"Cosine Wave With LOESS Curves Fit"</span>) <span class="sc">+</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-plot5" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-plot5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="guide_files/figure-html/fig-plot5-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-plot5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Cosine Wave with LOESS Curves Fit
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The first bit of code is just to replicate the same sample data of a cosine wave. Next, we go straight into plotting with <code>ggplot</code>. The ggplot package <span class="citation" data-cites="noauthor_ggplot2_2009">(<a href="references.html#ref-noauthor_ggplot2_2009" role="doc-biblioref"><span>“Ggplot2: <span>LOESS</span> Smoothing. Learning r”</span> 2009</a>)</span> we have been using above has a way to create a LOESS curve while plotting the data which is very helpful. To do this we just need to add more lines of code onto the scatter plot code called <code>goem_smooth</code> (smooth for line). In <code>geom_smooth</code> we use <code>method = "loess"</code> to use LOESS smoothing to make a curve that follows our data. Next there is a span = 1 (or 0.1 or 0.01). This tells geom_smooth to fit a certain amount of data based on the local regression. A lower span means the curve is more wiggly while higher span means less wiggly. Then we put a color to each LOESS curve to the plot to show the differences between the different span values. The rest is setting the specific color to the curve and adding a legend. We can see the differences in the levels of span right away which is consistent with before. It does look similar to spline smoothing curve above for the <code>smoother = 0.1</code>. When running the code it took longer to run which is what the main downside to LOESS smoothing is.</p>
+</section>
+</section>
+<section id="lessons-learned" class="level2">
+<h2 class="anchored" data-anchor-id="lessons-learned">5. Lessons Learned</h2>
+<ol type="1">
+<li>What B-splines and knots are and how they split up data to fit a smooth curve to a scatter plot.</li>
+<li>An introduction into R with some code examples and installing packages and reading in data and how to plot that data.</li>
+<li>Using B-spline functions to add a curve to a data set using the splines package and <code>bs()</code> function.</li>
+<li>Generate messy data in the form of a cosine wave and fit a B-spline curve to that messy data.</li>
+<li>Compare LOESS and B-splines and see where they are the same or different.</li>
+<li>Plot a LOESS smoothing curve on a cosine wave of messy data using <code>ggplot</code> <code>method = "loess"</code> in <code>geom_smooth</code>.</li>
+</ol>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">6. References</h2>
+<ol type="1">
+<li><span class="citation" data-cites="UnderstandingBasisSpline"><span>“Understanding Basis Spline (b-Spline) by Working Through Cox-<span class="nocase">deBoor</span> Algorithm. Everyday Is a School Day”</span> (<a href="references.html#ref-UnderstandingBasisSpline" role="doc-biblioref">n.d.</a>)</span></li>
+<li><span class="citation" data-cites="SASHelpCenter"><span>“<span>SAS</span> Help Center: Using Splines and Knots”</span> (<a href="references.html#ref-SASHelpCenter" role="doc-biblioref">n.d.</a>)</span></li>
+<li><span class="citation" data-cites="nikolaiev_dimid_overfitting_2021">Nikolaiev (Dimid) (<a href="references.html#ref-nikolaiev_dimid_overfitting_2021" role="doc-biblioref">2021</a>)</span></li>
+<li><span class="citation" data-cites="bates_tutorial_2020">Bates (<a href="references.html#ref-bates_tutorial_2020" role="doc-biblioref">2020</a>)</span></li>
+<li><span class="citation" data-cites="RforWindows"><span>“Download r-4.5.3 for Windows. The r-Project for Statistical Computing.”</span> (<a href="references.html#ref-RforWindows" role="doc-biblioref">n.d.</a>)</span></li>
+<li><span class="citation" data-cites="MacOS"><span>“R for <span class="nocase">macOS</span>”</span> (<a href="references.html#ref-MacOS" role="doc-biblioref">2026</a>)</span></li>
+<li><span class="citation" data-cites="RStudioDesktop"><span>“<span>RStudio</span> Desktop. Posit”</span> (<a href="references.html#ref-RStudioDesktop" role="doc-biblioref">n.d.</a>)</span></li>
+<li><span class="citation" data-cites="HousingPricesDataset"><span>“Housing Prices Dataset”</span> (<a href="references.html#ref-HousingPricesDataset" role="doc-biblioref">n.d.</a>)</span></li>
+<li><span class="citation" data-cites="noauthor_4144_nodate"><span>“4.1.4.4. <span>LOESS</span> (Aka <span>LOWESS</span>)”</span> (<a href="references.html#ref-noauthor_4144_nodate" role="doc-biblioref">n.d.</a>)</span></li>
+<li><span class="citation" data-cites="noauthor_ggplot2_2009"><span>“Ggplot2: <span>LOESS</span> Smoothing. Learning r”</span> (<a href="references.html#ref-noauthor_ggplot2_2009" role="doc-biblioref">2009</a>)</span></li>
+<li><span class="citation" data-cites="greenwellChapter7Multivariate">Boehmke and Greenwell (<a href="references.html#ref-greenwellChapter7Multivariate" role="doc-biblioref">n.d.</a>)</span></li>
+<li><span class="citation" data-cites="b_splines_va_tech">Tech (<a href="references.html#ref-b_splines_va_tech" role="doc-biblioref">n.d.</a>)</span></li>
+<li><span class="citation" data-cites="5SplinesBayesian"><span>“5. Splines — Bayesian Modeling and Computation in Python”</span> (<a href="references.html#ref-5SplinesBayesian" role="doc-biblioref">n.d.</a>)</span></li>
+</ol>
+<section id="if-you-want-to-know-more-check-out-these-additional-resources." class="level3">
+<h3 class="anchored" data-anchor-id="if-you-want-to-know-more-check-out-these-additional-resources.">If you want to know more check out these additional resources.</h3>
+<ul>
+<li>To learn more about the <code>splines2</code> package check out <span class="citation" data-cites="21BsplineBasis"><span>“2.1 b-Spline Basis Functions”</span> (<a href="references.html#ref-21BsplineBasis" role="doc-biblioref">n.d.</a>)</span>.</li>
+<li>For another package to look at splines check out <span class="citation" data-cites="woodMgcvMixedGAM2000">Wood (<a href="references.html#ref-woodMgcvMixedGAM2000" role="doc-biblioref">2025</a>)</span>.</li>
+<li>For more about nonparametric regression check out <span class="citation" data-cites="tibshiraniNonparametricRegressionClassification">Tibshirani (<a href="references.html#ref-tibshiraniNonparametricRegressionClassification" role="doc-biblioref">n.d.</a>)</span>.</li>
+</ul>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-21BsplineBasis" class="csl-entry" role="listitem">
+<span>“2.1 b-Spline Basis Functions.”</span> n.d. Accessed March 23, 2026. <a href="https://cran.r-project.org/web/packages/splines2/vignettes/splines2-intro.html">https://cran.r-project.org/web/packages/splines2/vignettes/splines2-intro.html</a>.
+</div>
+<div id="ref-noauthor_4144_nodate" class="csl-entry" role="listitem">
+<span>“4.1.4.4. <span>LOESS</span> (Aka <span>LOWESS</span>).”</span> n.d. Accessed March 4, 2026. <a href="https://www.itl.nist.gov/div898/handbook/pmd/section1/pmd144.htm">https://www.itl.nist.gov/div898/handbook/pmd/section1/pmd144.htm</a>.
+</div>
+<div id="ref-5SplinesBayesian" class="csl-entry" role="listitem">
+<span>“5. Splines — Bayesian Modeling and Computation in Python.”</span> n.d. Accessed March 25, 2026. <a href="https://bayesiancomputationbook.com/markdown/chp_05.html">https://bayesiancomputationbook.com/markdown/chp_05.html</a>.
+</div>
+<div id="ref-bates_tutorial_2020" class="csl-entry" role="listitem">
+Bates, Casey. 2020. <span>“Tutorial: Getting Started with r and <span>RStudio</span>. Dataquest.”</span> August 5, 2020. <a href="https://www.dataquest.io/blog/tutorial-getting-started-with-r-and-rstudio/">https://www.dataquest.io/blog/tutorial-getting-started-with-r-and-rstudio/</a>.
+</div>
+<div id="ref-greenwellChapter7Multivariate" class="csl-entry" role="listitem">
+Boehmke, Bradley, and Brandon Greenwell. n.d. <em>Chapter 7 Multivariate Adaptive Regression Splines <span></span> Hands-on Machine Learning with r</em>. Accessed March 24, 2026. <a href="https://bradleyboehmke.github.io/HOML/mars.html">https://bradleyboehmke.github.io/HOML/mars.html</a>.
+</div>
+<div id="ref-RforWindows" class="csl-entry" role="listitem">
+<span>“Download r-4.5.3 for Windows. The r-Project for Statistical Computing.”</span> n.d. Accessed March 23, 2026. <a href="https://cran.r-project.org/bin/windows/base/">https://cran.r-project.org/bin/windows/base/</a>.
+</div>
+<div id="ref-noauthor_ggplot2_2009" class="csl-entry" role="listitem">
+<span>“Ggplot2: <span>LOESS</span> Smoothing. Learning r.”</span> 2009. March 10, 2009. <a href="https://learnr.wordpress.com/2009/03/10/loess-smoothing/">https://learnr.wordpress.com/2009/03/10/loess-smoothing/</a>.
+</div>
+<div id="ref-HousingPricesDataset" class="csl-entry" role="listitem">
+<span>“Housing Prices Dataset.”</span> n.d. Accessed March 23, 2026. <a href="https://www.kaggle.com/datasets/yasserh/housing-prices-dataset">https://www.kaggle.com/datasets/yasserh/housing-prices-dataset</a>.
+</div>
+<div id="ref-nikolaiev_dimid_overfitting_2021" class="csl-entry" role="listitem">
+Nikolaiev (Dimid), Dmytro. 2021. <span>“Overfitting and Underfitting Principles. Towards Data Science.”</span> November 2, 2021. <a href="https://towardsdatascience.com/overfitting-and-underfitting-principles-ea8964d9c45c/">https://towardsdatascience.com/overfitting-and-underfitting-principles-ea8964d9c45c/</a>.
+</div>
+<div id="ref-MacOS" class="csl-entry" role="listitem">
+<span>“R for <span class="nocase">macOS</span>.”</span> 2026, March. <a href="https://cran.r-project.org/bin/macosx/">https://cran.r-project.org/bin/macosx/</a>.
+</div>
+<div id="ref-RStudioDesktop" class="csl-entry" role="listitem">
+<span>“<span>RStudio</span> Desktop. Posit.”</span> n.d. Accessed March 23, 2026. <a href="https://posit.co/download/rstudio-desktop/">https://posit.co/download/rstudio-desktop/</a>.
+</div>
+<div id="ref-SASHelpCenter" class="csl-entry" role="listitem">
+<span>“<span>SAS</span> Help Center: Using Splines and Knots.”</span> n.d. Accessed February 25, 2026. <a href="https://documentation.sas.com/doc/en/statug/latest/statug_transreg_details03.htm">https://documentation.sas.com/doc/en/statug/latest/statug_transreg_details03.htm</a>.
+</div>
+<div id="ref-b_splines_va_tech" class="csl-entry" role="listitem">
+Tech, Virginia. n.d. <span>“Lecture 10: B-Splines.”</span> Accessed March 24, 2026. <a href="https://personal.math.vt.edu/embree/math5466/lecture10.pdf">https://personal.math.vt.edu/embree/math5466/lecture10.pdf</a>.
+</div>
+<div id="ref-tibshiraniNonparametricRegressionClassification" class="csl-entry" role="listitem">
+Tibshirani, Ryan. n.d. <span>“Nonparametric Regression (and Classiﬁcation).”</span>
+</div>
+<div id="ref-UnderstandingBasisSpline" class="csl-entry" role="listitem">
+<span>“Understanding Basis Spline (b-Spline) by Working Through Cox-<span class="nocase">deBoor</span> Algorithm. Everyday Is a School Day.”</span> n.d. Accessed February 25, 2026. <a href="https://www.kenkoonwong.com/blog/bspline/">https://www.kenkoonwong.com/blog/bspline/</a>.
+</div>
+<div id="ref-woodMgcvMixedGAM2000" class="csl-entry" role="listitem">
+Wood, Simon. 2025. <span>“Mgcv: Mixed <span>GAM</span> Computation Vehicle with Automatic Smoothness Estimation,”</span> November. <a href="https://doi.org/10.32614/CRAN.package.mgcv">https://doi.org/10.32614/CRAN.package.mgcv</a>.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./index.html" class="pagination-link" aria-label="Assignment Flow">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Assignment Flow</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./references.html" class="pagination-link" aria-label="References">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Copyright 2026, Colton Haight</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

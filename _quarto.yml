@@ -8,10 +8,10 @@ date-format: long
 from: markdown+emoji
 
 book:
-  title: "User Guide: Annual Review Article Topic"
-  author: "Author Name"
+  title: "User Guide: A Guide to Working With B-splines in R"
+  author: "Colton Haight"
   page-footer:
-    left: "Copyright 2025, Author Name"
+    left: "Copyright 2026, Colton Haight"
   chapters:
     - index.qmd # Remove this before you submit your final report!
     - guide.qmd
@@ -20,6 +20,7 @@ book:
     - topic.qmd
     - needs.qmd
     - task-analysis.qmd
+    - R_Introduction.qmd
 
 bibliography: references.bib
 

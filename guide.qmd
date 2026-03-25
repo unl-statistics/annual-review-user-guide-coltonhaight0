@@ -6,56 +6,54 @@ This user guide is going to go over how to use B-splines to smooth data working 
 
 Splines are piecewise polynomials that are used to fit multiple small curves to follow the trend in data better than just one big curve can [Ken Koon Wong, 2025 -@UnderstandingBasisSpline]. Data is split into different sections and given polynomials that fit the data for each section. The points that split the data up and where the small curves connect are called knots. Knots allow for a smooth transition from one polynomial curve to next. The more knots used when fitting a spline to a data set plot results in a more flexible curve that can conform to the data better [SAS Help Center, -@SASHelpCenter]. So more knots = wigglier curve, less knots = smoother curve. If there is too many knots being used then the curve could be overfitting the model. Overfitting is bad because it makes the model curve look too wiggly and hard to read. Overfitting means your model is too complex for your data. Underfitting is another issue. Underfitting means your model is too simple for your data set [Dmytro Nikolaiev, -@nikolaiev_dimid_overfitting_2021].
 
-To look at how spline can be used on data we need to plot it in the coding language R. If you are unfamiliar with R we will start with a quick overview of R [Bates, -@bates_tutorial_2020], where to download it, and how to get started. If you already have knowledge of R then you can skip this next section.
+To look at how spline can be used on data we need to plot it in the coding language R. If you are unfamiliar with R we will start with a quick overview of R [Bates, -@bates_tutorial_2020], where to download it, and how to get started. This will be an appendix for this guide.
 
-## 2. Introduction to R
+## 2. B-splines and The Math
 
-R is a free computing software that was designed for statistical computing. To download R, click here for [windows](https://cran.r-project.org/bin/windows/base/) and here for [macOS](https://cran.r-project.org/bin/macosx/). After that is done downloading we should download a code editing software to make coding easier. The most widely used code editor for R is RStudio. To download RStudio click on [here](https://posit.co/download/rstudio-desktop/) and scroll down to step number 2 and select your version from the drop down menu and click download RStudio Desktop. Once the download is done navigate to RStudio on your device and open it.
+B-splines (also called cubic basis spline) is a continuous piecewise cubic function with first and second derivatives that are continuous. To construct a B-spline is called the Cox deBoor Recursion Formula. This formula is given by $$
+B_{j,0}(x) =
+\begin{cases}
+1 & x_j \le x < x_{i+1} \\
+0 & \text{otherwise}
+\end{cases}
+$$ $$
+B_{j,k}(x) =\frac{x - x_j}{x_{j+k} - x_j} B_{j,k-1}(x)+\frac{x_{j+k+1} - x}{x_{j+k+1} - x_{j+1}} B_{j+1,k-1}(x)
+$$
 
-Now that RStudio is opened on your device click on the button in the top left to open an R Script. This is where you are able to write R programs. Lets start by making a running some code. In the R Script type or copy this code.
+-   The B-splines are degree $k$-1
+-   Where the weights are determined by a knot sequence $\cdots < x_{-2} < x_{-1} < x_0 < x_1 < \cdots < x_n < x_{n+1} < \cdots$
+-   The knots are $x_j$ = $j$ - $j$ is the B-spline position (where the B-spline is located at in the knot sequence above)
+-   $k$ is the piecewise polynomials degree which controls the smoothness or wigglyness of the curve.
+    -   $k$ = 0 is noncontinuous smoothness
+    -   $k$ = 1 is continuous smoothness, linear meaning the B-spline curve is a straight line
+    -   $k$ = 2 is 1st derivative continuous
+    -   $k$ = 3 is 2nd derivative continuous
+-   $k$ - 1 also represents the number of knots fit on the data
+-   $k$ = 1 means no knots so its a straight line, $k$ = 2 means one knot so there is one kink, ...
 
-```{r}
-x <- "hello"
-print(x)
-```
+Knots serve as a connector to give the B-spline curve its structure. Here is a good example of knots and how they can effect the B-spline curve. ![Credit: Bradley Boehmke](knot_example.png){width="70%"}
 
-In the first line of code "x" is called a variable where it gets assigned a value of "hello" by using "\<-" to assign that value. The next line uses a function called print followed by (). The print function will display the value of the variable inside of the function where in this example it is printing the value "hello" of the variable x. This function prints "hello" down in the console below.
+From these graphs we can see a clear description of how knots work in accordance to B-spline curves. The more knots a B-spline uses means the better the fit to the data is.
 
-R is full of very useful packages that can be used to do so many different things. Below is some code on how to install and load packages that we will be using in R.
+If the number of knots is too big then that can lead to overfitting the model. Here is an example of overfitting to where the curve shows more than just the underlying trend and makes the data harder to interpret.
 
-```{r, message=FALSE, warning=FALSE}
-#install.packages("tidyverse")
-library(tidyverse)
-```
+![Credit: Bayesian Computation Book](overfitting_example.png){width="70%"}
 
-To install packages you can type `install.packages()` with the package you want inside of the parentheses with " " around the package. You only need to do this once. To load the package onto your R you type `library()` with the package inside of it without " ".
+This shows how as the number of knots, or degrees in this case, get higher the curve gets very wiggly and unstructured. This can lead to difficulty seeing trends of the data as the curves can get distracting and can be misleading. The more knots used for the data the more the curve actually follows the data points. You could have as many knots as data points and it would look like a super wiggly and hard to interpret line connecting every data point together. Choosing the right number of knots is important to see how well the B-spline fits the model used to generate the data.
 
-The package we just loaded into R is one that we will be using when we are working with splines on data.
-
-The last little bit of beginning code needed to go over is to read in a csv file. Using csv files are the main file type used to read data into R. When you find a csv data set that you want to use to work with splines create a folder to keep that data set. In the menu bar on the top of your device click on the **Session** tab and in that tab click on the Set Working Directory tab and then click Choose Directory... It should look like this.
-
-![](SetWD.png){width="50%"}
-
-Setting a working directory is the way you are able to access certain files in your computer to use for the code you are working on. Next, choose the place you saved your data set in to use that as your working directory.
-
-Next, we can run this code below to read in the csv file that we want to use for our data. We will be using housing market data later in this guide for an example to use with splines. Here is a [link](https://www.kaggle.com/datasets/yasserh/housing-prices-dataset) to the data set.
-
-```{r, message=FALSE, warning=FALSE}
-housing <- read.csv("Housing.csv")
-#head(housing)
-```
-
-The function we are using is read.csv. It does exactly what the function name is called, it reads in the csv data set into R. You should always assign your `read.csv()` to a variable. That is the easiest way to be able to use the data set in R in different functions. By typing the name of the variable in a line of code by itself it will print the value of the variable. In this example it will print the data set into the console below. The `head()` function with your data set variable inside will display only the first 6 row of the data set into the console.
-
-That was a quick overview of R and some basic but essential functions that we will be using to work with splines.
+Next, lets work with some sample housing data and fit a B-spline curve to that data.
 
 ## 3. Working With Splines
+
+To start we will need to run some code to give us some a housing data set that we will be using for this first example. Here is a [link](https://www.kaggle.com/datasets/yasserh/housing-prices-dataset) to the data set.
 
 In this guide we are going to be working with Basis splines or B-splines for data smoothing. Knots and degrees of freedom are the best ways to define B-splines for data. Degree of freedom works similar to knots for coding purposes for some examples later on. B-splines are a linear combination of a set of basis functions that use knots to control the shape of the spline.
 
 Now that we have a short background starts with R and on B-splines we can start to fit them to a data set. In this case lets use it on the housing market data we loaded into our R script above. We will also be using a new package called splines to work with this data.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
+#| label: fig-plot1
+#| fig-cap: "Housing Data Scatter Plot"
 library(tidyverse)
 housing <- read.csv("Housing.csv")
 
@@ -70,6 +68,8 @@ ggplot(data = housing, aes(x = area, y = price)) +
 This code above reads in our tidyverse package from earlier and the housing data that we downloaded earlier. After loading in tidyverse and our housing data we need to make a plot using `ggplot`. In the `ggplot` function we specify that we are using the housing data. Next, we specify that we are going to be plotting the Area of a House on the x-axis and Price of the Houses on the y-axis. Then add a `+ geom_point(alpha = 0.5)` to specify that we want to plot a scatter plot where the opacity of the points are at 0.5. And the + theme_minimal makes the plot easier to see. Now we are going to add a B-spline curve to this plot to identify the trends of the data.
 
 ```{r, message=FALSE, warning=FALSE}
+#| label: fig-plot2
+#| fig-cap: "Housing Data Scatter Plot With B-spline Fit"
 #install.packages("splines")
 library(splines)
 
@@ -88,11 +88,13 @@ ggplot(data = housing, aes(x = area, y = price)) +
 
 The code above starts by installing a new package call splines and reading in that splines package. Next we find the knots for our data using the area variable. The `quantile(housing\$area)` function chooses knot locations based on the distribution of the area data from the housing data set. Next, we are finding a linear regression model for the B-spline. The `lm(price \~ bs(area, knots = knots), data = housing)` fits the linear regression model where we are predicting the price of the houses. The bs(area, knots = knots) function generates B-spline basis matrix with the knots that we found earlier using `quantile()`. And `data = housing` specifies that we are using the housing data set to fit our linear regression model. The line of code with `pridict()` predicts the price of house from our b-spline model and puts it into a new column called predicted in our original housing data set. Finally we are plotting the housing data again with a new part added on. The `+ geom_line(aes(y = predicted), color "blue", size = 1)` plots a line on the housing data plot from earlier where the line is the predicted price of the house in the color blue.
 
-From this plot we can see some trends. Near the lower area values there are a bunch of data points bunched up with a lower price point. The B-spline goes through the middle of the points as expected. As the area increases so does the price but there are still some points that shifts the B-spline curve towards the higher values. Even so the B-spline curves seems to be predicting the model well.
+From @fig-plot2 we can see some trends. Near the lower area values there are a bunch of data points bunched up with a lower price point. The B-spline goes through the middle of the points as expected. As the area increases so does the price but there are still some points that shifts the B-spline curve towards the higher values. Even so the B-spline curves seems to be predicting the model well.
 
 Now we will be looking at some generated data [Ken Koon Wong, 2025 -@UnderstandingBasisSpline].
 
 ```{r}
+#| label: fig-plot3
+#| fig-cap: "Cosine Wave"
 set.seed(123)
 n <- 1000
 
@@ -111,6 +113,8 @@ ggplot(data = df, aes(x=x,y=y)) +
 The `set.seed(123)` gives us a way to reproduce our generated data. In the next little bit of code `runif(n,-4,4)` is generating 1000 random samples (n) of a Uniform(-4, 4) distribution spread evenly between -4 and 4. The next line simulates data from a `cos()` function of the data from x multiplied by 2 to make the cosine function wave oscillate 2 times as fast. Then it adds random noise to the cosine wave from 1000 samples from a normal distribution with a mean of 0 and a standard deviation of 0.5. Putting the two pieces of code together, it gives some pretty messy data. Then we are going to put our samples from the Uniform distribution and the cosine wave data into a data frame called df. Next, we plot our data and see the cosine wave.
 
 ```{r}
+#| label: fig-plot4
+#| fig-cap: "Cosine Wave With B-spline Curve Fit"
 lm_model <- lm(y ~ bs(x, df = 25), data = df) #lower df means smoother line, higher df means more wiggliness
 x_pred <- data.frame(x = seq(min(df$x), max(df$x), length.out = 300))
 x_pred$predicted <- predict(lm_model, newdata = x_pred)
@@ -139,6 +143,8 @@ Both LOESS and Spline smoothing is very useful for fitting curves to data. Compa
 Below is some code for LOESS smoothing to see how it looks compared to using B-splines for the same simulated data above.
 
 ```{r, message=FALSE, warning=FALSE}
+#| label: fig-plot5
+#| fig-cap: "Cosine Wave with LOESS Curves Fit"
 x <- runif(n,-4,4)
 y <- cos(2*x) + rnorm(n, 0, 0.5)
 df <- data.frame(x,y)
@@ -169,17 +175,24 @@ The first bit of code is just to replicate the same sample data of a cosine wave
 5.  Compare LOESS and B-splines and see where they are the same or different.
 6.  Plot a LOESS smoothing curve on a cosine wave of messy data using `ggplot` `method = "loess"` in `geom_smooth`.
 
-If in need of more help, go to these resources below.
-
 ## 6. References
 
 1.  @UnderstandingBasisSpline
 2.  @SASHelpCenter
 3.  @nikolaiev_dimid_overfitting_2021
 4.  @bates_tutorial_2020
-5.  [Download R-4.5.2 for Windows](https://cran.r-project.org/bin/windows/base/)
-6.  [R for macOS](https://cran.r-project.org/bin/macosx/)
-7.  [RStudio Desktop](https://posit.co/download/rstudio-desktop/)
-8.  [Housing Data](https://www.kaggle.com/datasets/yasserh/housing-prices-dataset)
+5.  @RforWindows
+6.  @MacOS
+7.  @RStudioDesktop
+8.  @HousingPricesDataset
 9.  @noauthor_4144_nodate
 10. @noauthor_ggplot2_2009
+11. @greenwellChapter7Multivariate
+12. @b_splines_va_tech
+13. @5SplinesBayesian
+
+### If you want to know more check out these additional resources.
+
+-   To learn more about the `splines2` package check out @21BsplineBasis.
+-   For another package to look at splines check out @woodMgcvMixedGAM2000.
+-   For more about nonparametric regression check out @tibshiraniNonparametricRegressionClassification.
